@@ -18,6 +18,7 @@ function File3() {
   const handal = (e) => {
     setdata(e.target.value);
   };
+  //check
 
   const add = () => {
     if (!data) {
