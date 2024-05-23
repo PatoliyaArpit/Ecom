@@ -1,0 +1,167 @@
+import React, { useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import Nav from "react-bootstrap/Nav";
+import { useDispatch, useSelector } from "react-redux";
+import { crudshow, remove, update } from "./redux/Slice";
+// import Excel from 'react-html-table-to-excel';yy
+import { CSVLink } from "react-csv";
+import { useReactToPrint } from "react-to-print";
+
+function File3() {
+  const [data, setdata] = useState("");
+  const [item, setitem] = useState([]);
+  const [toggle, settoggle] = useState(true);
+  const [Eitem, setEitem] = useState(null);
+  const [counter, setCounter] = useState(1);
+  const dispetch = useDispatch();
+  const show = useSelector((state) => state.crud.crud);
+  console.log(show);
+  const componetPDF = useRef();
+
+  const handal = (e) => {
+    setdata(e.target.value);
+  };
+
+  const add = () => {
+    if (!data) {
+      return;
+    }
+    const newItem = { id: counter, name: data };
+    setitem([...item, newItem]);
+    dispetch(crudshow(newItem));
+    setdata("");
+    console.log(newItem);
+    setCounter(counter + 1);
+  };
+
+  const edit = (id) => {
+    const edititem = show.find((elem) => elem.id === id);
+    settoggle(false);
+    setEitem(id);
+    setdata(edititem.name);
+    // console.log(item)
+  };
+
+  const saveEdit = () => {
+    if (!data) {
+      return;
+    }
+    dispetch(update({ id: Eitem, newData: { name: data } }));
+    settoggle(true);
+    setdata("");
+    setEitem(null);
+  };
+  const drop = (id) => {
+    dispetch(remove(id));
+
+    setitem(item.filter((elem) => elem.id !== id));
+    setdata("");
+  };
+  //   console.log(item);
+  const generatePDF = useReactToPrint({
+    content: () => componetPDF.current,
+    documentTitle: "usedata",
+    onAfterPrint: () => alert("data save in pdf"),
+  });
+
+  return (
+    <div>
+      <div className="main-div">
+        <div className="child-div">
+          <figure>
+            <figcaption>Add your List Here</figcaption>
+          </figure>
+          <CSVLink className="Excel" data={show} filename=" Excel Sheet">
+            Export All Data in Excel
+          </CSVLink>
+          <button className="pdf" onClick={generatePDF}>
+            Pdf Genret
+          </button>
+          <div className="additem">
+            {toggle ? (
+              <input
+                type="text"
+                placeholder="Enter name"
+                value={data}
+                onChange={handal}
+              />
+            ) : (
+              <input
+                type="text"
+                placeholder="Enter name"
+                value={data}
+                onChange={handal}
+                autoFocus
+              />
+            )}
+            {toggle ? (
+              <button className=" " onClick={add}>
+                +
+              </button>
+            ) : (
+              <>
+                <button onClick={saveEdit}>Save</button>
+              </>
+            )}
+          </div>
+
+          <div className=" show">
+            <div className="table-responsive ">
+              <div ref={componetPDF} style={{ width: "100%" }}>
+                <table className="table table-hover">
+                  <thead className="thead-dark">
+                    <tr>
+                      <th>id</th>
+                      <th>Name</th>
+                      <th>Edit</th>
+                      <th>Delete</th>
+                      {/* <th> deaths</th> */}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {show.map((val, index) => {
+                      // console.log(val);
+                      return (
+                        <tr key={val.id}>
+                          <td>{index + 1}</td>
+                          <td>{val.name}</td>
+                          <td>
+                            <button
+                              className="fas fa-pencil-alt edit-btn"
+                              onClick={() => edit(val.id)}
+                            >
+                              Edit
+                            </button>
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              title=" Delete item"
+                              onClick={() => drop(val.id)}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div className="showitems"></div>
+        </div>
+      </div>
+
+      <script src="js/jquery-3.4.1.min.js"></script>
+
+      <script src="js/bootstrap.js"></script>
+
+      <script src="js/custom.js"></script>
+
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh39n5U-4IoWpsVGUHWdqB6puEkhRLdmI&callback=myMap"></script>
+    </div>
+  );
+}
+export default File3;
